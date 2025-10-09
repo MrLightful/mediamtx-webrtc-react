@@ -1,0 +1,54 @@
+{
+  "name": "@mediamtx/webrtc-reader",
+  "version": "1.0.0",
+  "description": "TypeScript/React-compatible WebRTC reader for MediaMTX WHEP streams",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "preinstall": "npx only-allow pnpm"
+  },
+  "packageManager": "pnpm@10.18.1",
+  "keywords": [
+    "webrtc",
+    "mediamtx",
+    "whep",
+    "streaming",
+    "typescript",
+    "react"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "react": "^16.8.0 || ^17.0.0 || ^18.0.0",
+    "@types/react": "^16.8.0 || ^17.0.0 || ^18.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "@types/react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/react": "^18.2.0",
+    "react": "^18.2.0"
+  }
+}
