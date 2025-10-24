@@ -1,6 +1,6 @@
 {
   "name": "mediamtx-webrtc-react",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "TypeScript/React-compatible WebRTC reader for MediaMTX WHEP streams",
   "type": "module",
   "main": "./dist/index.js",
