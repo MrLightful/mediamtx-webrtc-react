@@ -8,6 +8,7 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 permissions:
+  id-token: write # Required for OIDC and NPM Trusted Publishing.
   contents: write
   pull-requests: write
 
