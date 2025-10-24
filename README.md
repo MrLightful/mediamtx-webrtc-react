@@ -2,39 +2,16 @@
 
 A TypeScript-compatible WebRTC reader for MediaMTX WHEP streams with React integration.
 
-## Project Structure
-
-```
-webrtc/
-├── src/                     # Source code
-│   ├── types/              # TypeScript type definitions
-│   ├── lib/                # Core MediaMTX WebRTC reader class
-│   ├── hooks/              # React hooks
-│   ├── components/         # React components
-│   ├── index.ts            # Main exports
-│   └── reader.tsx          # Usage examples
-├── dist/                   # Built output (generated)
-├── README.md              # Documentation
-├── package.json           # Package configuration
-├── tsconfig.json          # TypeScript configuration
-└── test.html              # Browser test file
-```
+This is a close port of the MediaMTX's [reader.js](https://github.com/bluenviron/mediamtx/blob/v1.15.2/internal/servers/webrtc/reader.js) (based on v1.15.2).
 
 ## Installation
 
 ```bash
-pnpm add @mediamtx/webrtc-reader
+pnpm add mediamtx-webrtc-react
 # or
-npm install @mediamtx/webrtc-reader
+npm install mediamtx-webrtc-react
 # or
-yarn add @mediamtx/webrtc-reader
-```
-
-For React usage, make sure you have React installed:
-```bash
-pnpm add react @types/react
-# or
-npm install react @types/react
+yarn add mediamtx-webrtc-react
 ```
 
 ## Usage
@@ -42,7 +19,7 @@ npm install react @types/react
 ### 1. Direct TypeScript Class (Same API as original)
 
 ```typescript
-import { MediaMTXWebRTCReader } from '@mediamtx/webrtc-reader';
+import { MediaMTXWebRTCReader } from 'mediamtx-webrtc-react';
 
 const reader = new MediaMTXWebRTCReader({
   url: "http://mediamtx-ip:8889/mystream/whep",
@@ -66,7 +43,7 @@ const reader = new MediaMTXWebRTCReader({
 
 ```tsx
 import React from 'react';
-import { useMediaMTXWebRTC } from '@mediamtx/webrtc-reader';
+import { useMediaMTXWebRTC } from 'mediamtx-webrtc-react';
 
 function VideoPlayer() {
   const { 
@@ -95,7 +72,7 @@ function VideoPlayer() {
 
 ```tsx
 import React from 'react';
-import { WebRTCVideo } from '@mediamtx/webrtc-reader';
+import { WebRTCVideo } from 'mediamtx-webrtc-react';
 
 function App() {
   return (
@@ -115,7 +92,7 @@ function App() {
 
 ```tsx
 import React from 'react';
-import { WebRTCAudio } from '@mediamtx/webrtc-reader';
+import { WebRTCAudio } from 'mediamtx-webrtc-react';
 
 function AudioPlayer() {
   return (
@@ -146,7 +123,7 @@ The TypeScript version maintains full backward compatibility with the original J
 
 ### After (TypeScript):
 ```typescript
-import { MediaMTXWebRTCReader } from '@mediamtx/webrtc-reader';
+import { MediaMTXWebRTCReader } from 'mediamtx-webrtc-react';
 
 const reader = new MediaMTXWebRTCReader({
   url: "http://mediamtx-ip:8889/mystream/whep",
@@ -156,52 +133,6 @@ const reader = new MediaMTXWebRTCReader({
   },
 });
 ```
-
-## Development
-
-This project uses **pnpm** as the package manager for better performance and disk efficiency.
-
-### Prerequisites
-```bash
-# Install pnpm globally if you don't have it
-npm install -g pnpm
-```
-
-### Setup & Building
-```bash
-# Install dependencies
-pnpm install
-
-# Build the project
-pnpm run build
-
-# Build and watch for changes during development
-pnpm run dev
-
-# Type check without building
-pnpm run typecheck
-
-# Clean build output
-pnpm run clean
-```
-
-### Testing
-```bash
-# Build the project
-pnpm run build
-
-# Open test.html in your browser to test the library
-# The test file demonstrates the original JavaScript API compatibility
-```
-
-### Project Commands
-- `pnpm run build` - Compile TypeScript to JavaScript
-- `pnpm run dev` - Watch mode for development
-- `pnpm run typecheck` - Type checking only
-- `pnpm run clean` - Remove build output
-
-### Package Manager Enforcement
-This project includes a `preinstall` script that ensures only pnpm is used for consistency across development environments.
 
 ## API Reference
 
@@ -259,7 +190,3 @@ const {
 - Firefox 74+
 - Safari 13.1+
 - Edge 80+
-
-## License
-
-MIT
