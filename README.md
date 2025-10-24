@@ -1,5 +1,8 @@
 # MediaMTX WebRTC Reader - TypeScript/React
 
+[![NPM Version](https://img.shields.io/npm/v/mediamtx-webrtc-react)](https://www.npmjs.com/package/mediamtx-webrtc-react)
+[![NPM Downloads](https://img.shields.io/npm/dm/mediamtx-webrtc-react)](https://www.npmjs.com/package/mediamtx-webrtc-react)
+
 A TypeScript-compatible WebRTC reader for MediaMTX WHEP streams with React integration.
 
 This is a close port of the MediaMTX's [reader.js](https://github.com/bluenviron/mediamtx/blob/v1.15.2/internal/servers/webrtc/reader.js) (based on v1.15.2).
