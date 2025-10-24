@@ -54,7 +54,7 @@ export const WebRTCVideo: React.FC<WebRTCVideoProps> = ({
   const combinedStyle: React.CSSProperties = {
     width: '100%',
     maxWidth: '100%',
-    height: 'auto',
+    height: '100%',
     backgroundColor: '#000',
     ...style,
   };
