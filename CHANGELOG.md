@@ -1,5 +1,11 @@
 # mediamtx-webrtc-react
 
+## 0.0.3
+
+### Patch Changes
+
+- 2dbc654: Add build stage to release workflow
+
 ## 0.0.2
 
 ### Patch Changes
