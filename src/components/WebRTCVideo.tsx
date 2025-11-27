@@ -1,6 +1,7 @@
 import React from 'react';
 import { useMediaMTXWebRTC } from '../hooks/useMediaMTXWebRTC';
 import type { WebRTCVideoProps } from '../types/index';
+import '../styles/video.css';
 
 /**
  * Simple WebRTC video component that automatically handles MediaMTX streaming
@@ -50,29 +51,12 @@ export const WebRTCVideo: React.FC<WebRTCVideoProps> = ({
     onConnectionStateChange?.(connectionState);
   }, [connectionState, onConnectionStateChange]);
 
-  // Combine default styles with user styles
-  const combinedStyle: React.CSSProperties = {
-    width: '100%',
-    maxWidth: '100%',
-    height: '100%',
-    backgroundColor: '#000',
-    ...style,
-  };
-
   // Show loading state while connecting
   if (isConnecting && !stream) {
     return (
       <div 
-        className={className}
-        style={{
-          ...combinedStyle,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '200px',
-          color: 'white',
-          fontSize: '14px',
-        }}
+        className={`webrtc-video webrtc-video-loading ${className || ''}`}
+        style={style}
       >
         Connecting to stream...
       </div>
@@ -83,18 +67,8 @@ export const WebRTCVideo: React.FC<WebRTCVideoProps> = ({
   if (error && !isConnecting && !stream) {
     return (
       <div 
-        className={className}
-        style={{
-          ...combinedStyle,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '200px',
-          color: '#ff6b6b',
-          fontSize: '14px',
-          padding: '20px',
-          textAlign: 'center',
-        }}
+        className={`webrtc-video webrtc-video-error ${className || ''}`}
+        style={style}
       >
         <div>
           <div style={{ marginBottom: '10px' }}>⚠️ Connection Error</div>
@@ -107,8 +81,8 @@ export const WebRTCVideo: React.FC<WebRTCVideoProps> = ({
   return (
     <video
       ref={videoRef}
-      className={className}
-      style={combinedStyle}
+      className={`webrtc-video ${className || ''}`}
+      style={style}
       autoPlay={autoPlay}
       controls={controls}
       muted={muted}
