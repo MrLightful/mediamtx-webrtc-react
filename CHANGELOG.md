@@ -1,5 +1,11 @@
 # mediamtx-webrtc-react
 
+## 0.1.0
+
+### Minor Changes
+
+- b0fa37f: Enhance styling properties for video component
+
 ## 0.0.3
 
 ### Patch Changes
