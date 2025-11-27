@@ -52,6 +52,7 @@ export interface WebRTCState {
 
 // Component props
 export interface WebRTCVideoProps extends Omit<React.VideoHTMLAttributes<HTMLVideoElement>, 'onError'> {
+  ref?: React.RefObject<HTMLVideoElement>;
   url: string;
   user?: string;
   pass?: string;

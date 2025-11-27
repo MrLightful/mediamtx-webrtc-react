@@ -17,6 +17,7 @@ import '../styles/video.css';
  * ```
  */
 export const WebRTCVideo: React.FC<WebRTCVideoProps> = ({
+  ref,
   url,
   user,
   pass,
@@ -38,6 +39,7 @@ export const WebRTCVideo: React.FC<WebRTCVideoProps> = ({
     error,
     stream 
   } = useMediaMTXWebRTC({
+    videoRef: ref,
     url,
     user,
     pass,
