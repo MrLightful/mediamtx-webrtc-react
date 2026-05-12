@@ -37,14 +37,32 @@ export class MediaMTXWebRTCReader {
    */
   close(): void {
     this.state = 'closed';
+    this.cleanupSession();
+  }
 
+  private cleanupSession(): void {
     if (this.pc !== null) {
       this.pc.close();
+      this.pc = null;
     }
 
     if (this.restartTimeout !== null) {
       clearTimeout(this.restartTimeout);
+      this.restartTimeout = null;
     }
+
+    this.offerData = null;
+
+    if (this.sessionUrl !== null) {
+      fetch(this.sessionUrl, {
+        method: 'DELETE',
+      }).catch(() => {
+        // best-effort session cleanup
+      });
+      this.sessionUrl = null;
+    }
+
+    this.queuedCandidates = [];
   }
 
   private static supportsNonAdvertisedCodec(codec: string, fmtp?: string): Promise<boolean> {
@@ -336,21 +354,7 @@ export class MediaMTXWebRTCReader {
 
   private handleError(err: string): void {
     if (this.state === 'running') {
-      if (this.pc !== null) {
-        this.pc.close();
-        this.pc = null;
-      }
-
-      this.offerData = null;
-
-      if (this.sessionUrl !== null) {
-        fetch(this.sessionUrl, {
-          method: 'DELETE',
-        });
-        this.sessionUrl = null;
-      }
-
-      this.queuedCandidates = [];
+      this.cleanupSession();
       this.state = 'restarting';
 
       this.restartTimeout = (typeof window !== 'undefined' ? window.setTimeout : setTimeout)(() => {

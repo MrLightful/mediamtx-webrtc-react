@@ -47,15 +47,30 @@ export const WebRTCAudio = React.forwardRef<HTMLAudioElement, WebRTCAudioProps>(
     autoplay: autoPlay,
   });
 
+  const attachStream = React.useCallback((node: HTMLAudioElement | null) => {
+    if (!node || !stream) {
+      return;
+    }
+
+    node.srcObject = stream;
+    if (autoPlay) {
+      const playResult = node.play();
+      playResult?.catch(() => {
+        // Autoplay might fail due to browser policies
+      });
+    }
+  }, [autoPlay, stream]);
+
   const setAudioRef = React.useCallback((node: HTMLAudioElement | null) => {
     internalAudioRef.current = node;
+    attachStream(node);
 
     if (typeof ref === 'function') {
       ref(node);
     } else if (ref) {
       ref.current = node;
     }
-  }, [ref]);
+  }, [attachStream, ref]);
 
   // Notify parent of connection state changes
   React.useEffect(() => {

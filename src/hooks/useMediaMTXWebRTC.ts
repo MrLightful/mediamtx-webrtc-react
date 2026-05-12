@@ -25,6 +25,8 @@ export function useMediaMTXWebRTC(config: ReactWebRTCConfig) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const isInitializedRef = useRef<boolean>(false);
   const stateCheckIntervalRef = useRef<IntervalId | null>(null);
+  const latestConfigRef = useRef<ReactWebRTCConfig>(config);
+  latestConfigRef.current = config;
 
   const clearStateCheckInterval = useCallback(() => {
     if (stateCheckIntervalRef.current !== null) {
@@ -35,27 +37,30 @@ export function useMediaMTXWebRTC(config: ReactWebRTCConfig) {
 
   // Handle track events with automatic video/audio element assignment
   const handleTrack = useCallback((evt: RTCTrackEvent) => {
+    const latestConfig = latestConfigRef.current;
     const mediaStream = evt.streams[0] ?? new MediaStream([evt.track]);
     setStream(mediaStream);
     setError(null);
     
     // Auto-assign to video element if available
-    const targetVideoRef = config.videoRef?.current || videoRef.current;
+    const targetVideoRef = latestConfig.videoRef?.current || videoRef.current;
     if (targetVideoRef && mediaStream.getVideoTracks().length > 0) {
       targetVideoRef.srcObject = mediaStream;
-      if (config.autoplay !== false) {
-        targetVideoRef.play().catch(() => {
+      if (latestConfig.autoplay !== false) {
+        const playResult = targetVideoRef.play();
+        playResult?.catch(() => {
           // Autoplay might fail due to browser policies
         });
       }
     }
     
     // Auto-assign to audio element if available
-    const targetAudioRef = config.audioRef?.current || audioRef.current;
+    const targetAudioRef = latestConfig.audioRef?.current || audioRef.current;
     if (targetAudioRef && mediaStream.getAudioTracks().length > 0) {
       targetAudioRef.srcObject = mediaStream;
-      if (config.autoplay !== false) {
-        targetAudioRef.play().catch(() => {
+      if (latestConfig.autoplay !== false) {
+        const playResult = targetAudioRef.play();
+        playResult?.catch(() => {
           // Autoplay might fail due to browser policies
         });
       }
@@ -66,11 +71,12 @@ export function useMediaMTXWebRTC(config: ReactWebRTCConfig) {
     setRetryCount(0);
     
     // Call custom onTrack if provided
-    config.onTrack?.(evt);
-  }, [config.onTrack, config.videoRef, config.audioRef, config.autoplay]);
+    latestConfig.onTrack?.(evt);
+  }, []);
 
   // Handle errors with retry counting
   const handleError = useCallback((err: string) => {
+    const latestConfig = latestConfigRef.current;
     setError(err);
     
     // Check if this is a retry attempt
@@ -79,8 +85,12 @@ export function useMediaMTXWebRTC(config: ReactWebRTCConfig) {
     }
     
     // Call custom onError if provided
-    config.onError?.(err);
-  }, [config.onError]);
+    latestConfig.onError?.(err);
+  }, []);
+
+  const handleDataChannel = useCallback((evt: RTCDataChannelEvent) => {
+    latestConfigRef.current.onDataChannel?.(evt);
+  }, []);
 
   // Initialize WebRTC reader
   useEffect(() => {
@@ -99,7 +109,7 @@ export function useMediaMTXWebRTC(config: ReactWebRTCConfig) {
       token: config.token,
       onError: handleError,
       onTrack: handleTrack,
-      onDataChannel: config.onDataChannel,
+      onDataChannel: handleDataChannel,
     };
 
     try {
@@ -128,7 +138,7 @@ export function useMediaMTXWebRTC(config: ReactWebRTCConfig) {
       isInitializedRef.current = false;
       return () => {}; // Return no-op cleanup function
     }
-  }, [config.url, config.user, config.pass, config.token, config.onDataChannel, clearStateCheckInterval, handleError, handleTrack, restartToken]);
+  }, [config.url, config.user, config.pass, config.token, clearStateCheckInterval, handleError, handleTrack, handleDataChannel, restartToken]);
 
   // Clean up on unmount
   useEffect(() => {
