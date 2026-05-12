@@ -38,8 +38,8 @@ export interface OfferData {
 // React-specific configuration
 export interface ReactWebRTCConfig extends Omit<MediaMTXWebRTCReaderConfig, 'onTrack'> {
   onTrack?: OnTrack;
-  videoRef?: React.RefObject<HTMLVideoElement>;
-  audioRef?: React.RefObject<HTMLAudioElement>;
+  videoRef?: React.RefObject<HTMLVideoElement | null>;
+  audioRef?: React.RefObject<HTMLAudioElement | null>;
   autoplay?: boolean;
 }
 
