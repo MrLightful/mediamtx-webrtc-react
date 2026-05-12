@@ -20,6 +20,7 @@ export type {
   ReaderState,
   OnError,
   OnTrack,
+  OnDataChannel,
   OfferData,
 } from './types/index';
 

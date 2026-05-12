@@ -432,15 +432,20 @@ export class MediaMTXWebRTCReader {
     this.pc = new RTCPeerConnection({
       iceServers,
       // unified-plan is now the default and only option in modern browsers
-    });
+      sdpSemantics: 'unified-plan',
+    } as RTCConfiguration);
 
     const direction = 'recvonly';
     this.pc.addTransceiver('video', { direction });
     this.pc.addTransceiver('audio', { direction });
 
+    // using data channels requires creating a data channel locally
+    this.pc.createDataChannel('');
+
     this.pc.onicecandidate = (evt) => this.onLocalCandidate(evt);
     this.pc.onconnectionstatechange = () => this.onConnectionState();
     this.pc.ontrack = (evt) => this.onTrack(evt);
+    this.pc.ondatachannel = (evt) => this.onDataChannel(evt);
 
     return this.pc.createOffer()
       .then((offer) => {
@@ -572,6 +577,12 @@ export class MediaMTXWebRTCReader {
   private onTrack(evt: RTCTrackEvent): void {
     if (this.conf.onTrack !== undefined) {
       this.conf.onTrack(evt);
+    }
+  }
+
+  private onDataChannel(evt: RTCDataChannelEvent): void {
+    if (this.conf.onDataChannel !== undefined) {
+      this.conf.onDataChannel(evt);
     }
   }
 
