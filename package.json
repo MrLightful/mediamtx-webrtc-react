@@ -44,6 +44,7 @@
     "build:watch": "tsup --watch",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "clean": "rm -rf dist",
     "preinstall": "npx only-allow pnpm"
   },
@@ -65,6 +66,7 @@
     "@types/react": "^18.3.28",
     "react": "^18.3.1",
     "tsup": "^8.5.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   }
 }
