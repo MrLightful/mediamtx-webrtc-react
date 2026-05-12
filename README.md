@@ -2,6 +2,7 @@
 
 [![NPM Version](https://img.shields.io/npm/v/mediamtx-webrtc-react)](https://www.npmjs.com/package/mediamtx-webrtc-react)
 [![NPM Downloads](https://img.shields.io/npm/dm/mediamtx-webrtc-react)](https://www.npmjs.com/package/mediamtx-webrtc-react)
+[![CI](https://img.shields.io/github/actions/workflow/status/MrLightful/mediamtx-webrtc-react/test.yml?label=CI)](https://github.com/MrLightful/mediamtx-webrtc-react/actions/workflows/test.yml)
 
 A TypeScript-compatible WebRTC reader for MediaMTX WHEP streams with React integration.
 
