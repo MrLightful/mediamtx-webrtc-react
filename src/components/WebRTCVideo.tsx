@@ -16,13 +16,13 @@ import '../styles/video.css';
  * />
  * ```
  */
-export const WebRTCVideo: React.FC<WebRTCVideoProps> = ({
-  ref,
+export const WebRTCVideo = React.forwardRef<HTMLVideoElement, WebRTCVideoProps>(({
   url,
   user,
   pass,
   token,
   onError,
+  onDataChannel,
   onConnectionStateChange,
   className,
   autoPlay = true,
@@ -30,23 +30,34 @@ export const WebRTCVideo: React.FC<WebRTCVideoProps> = ({
   muted = true, // Default to muted for autoplay compatibility
   style,
   ...videoProps
-}) => {
+}, ref) => {
+  const internalVideoRef = React.useRef<HTMLVideoElement | null>(null);
   const { 
-    videoRef, 
     connectionState, 
     isConnecting, 
     isConnected, 
     error,
     stream 
   } = useMediaMTXWebRTC({
-    videoRef: ref,
+    videoRef: internalVideoRef,
     url,
     user,
     pass,
     token,
     onError,
+    onDataChannel,
     autoplay: autoPlay,
   });
+
+  const setVideoRef = React.useCallback((node: HTMLVideoElement | null) => {
+    internalVideoRef.current = node;
+
+    if (typeof ref === 'function') {
+      ref(node);
+    } else if (ref) {
+      ref.current = node;
+    }
+  }, [ref]);
 
   // Notify parent of connection state changes
   React.useEffect(() => {
@@ -82,7 +93,7 @@ export const WebRTCVideo: React.FC<WebRTCVideoProps> = ({
 
   return (
     <video
-      ref={videoRef}
+      ref={setVideoRef}
       className={`webrtc-video ${className || ''}`}
       style={style}
       autoPlay={autoPlay}
@@ -92,5 +103,6 @@ export const WebRTCVideo: React.FC<WebRTCVideoProps> = ({
       {...videoProps}
     />
   );
-};
+});
 
+WebRTCVideo.displayName = 'WebRTCVideo';

@@ -43,8 +43,8 @@
     "build": "tsup",
     "build:watch": "tsup --watch",
     "dev": "tsup --watch",
+    "test": "vitest run --environment jsdom",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
     "clean": "rm -rf dist",
     "preinstall": "npx only-allow pnpm"
   },
@@ -63,10 +63,14 @@
   },
   "devDependencies": {
     "@changesets/cli": "^2.31.0",
+    "@testing-library/react": "^16.3.2",
     "@types/react": "^18.3.28",
+    "@types/react-dom": "^18.3.7",
+    "jsdom": "^29.1.1",
     "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
-    "vitest": "^3.2.4"
+    "vitest": "^4.1.6"
   }
 }

@@ -5,7 +5,7 @@
 
 A TypeScript-compatible WebRTC reader for MediaMTX WHEP streams with React integration.
 
-This is a close port of the MediaMTX's [reader.js](https://github.com/bluenviron/mediamtx/blob/v1.15.2/internal/servers/webrtc/reader.js) (based on v1.15.2).
+This is a close port of the MediaMTX's [reader.js](https://github.com/bluenviron/mediamtx/blob/v1.18.1/internal/servers/webrtc/reader.js) (based on v1.18.1).
 
 ## Installation
 
@@ -35,6 +35,9 @@ const reader = new MediaMTXWebRTCReader({
   onTrack: (evt) => {
     const videoElement = document.getElementById("myvideo") as HTMLVideoElement;
     videoElement.srcObject = evt.streams[0];
+  },
+  onDataChannel: (evt) => {
+    console.log("Data channel:", evt.channel);
   },
 });
 
@@ -149,6 +152,7 @@ interface MediaMTXWebRTCReaderConfig {
   token?: string;        // Optional bearer token
   onError?: (err: string) => void;
   onTrack?: (evt: RTCTrackEvent) => void;
+  onDataChannel?: (evt: RTCDataChannelEvent) => void;
 }
 ```
 
@@ -172,9 +176,11 @@ const {
   // Control methods
   reader,             // MediaMTXWebRTCReader instance
   close,              // () => void
-  restart,            // () => void
+  restart,            // () => void; closes the current reader and starts a new one
 } = useMediaMTXWebRTC(config);
 ```
+
+`WebRTCVideo` and `WebRTCAudio` both support standard React refs via `forwardRef`, so parent components can directly access the rendered media element when needed.
 
 ## Features
 
@@ -183,6 +189,7 @@ const {
 - ✅ **Automatic video/audio element handling**
 - ✅ **Connection state management**
 - ✅ **Error handling and retry logic**
+- ✅ **Data channel support**
 - ✅ **Backward compatibility** with original JavaScript API
 - ✅ **ESM/CommonJS support**
 - ✅ **Tree-shakeable exports**

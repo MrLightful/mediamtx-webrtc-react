@@ -5,6 +5,7 @@
 // Basic callback types
 export type OnError = (err: string) => void;
 export type OnTrack = (evt: RTCTrackEvent) => void;
+export type OnDataChannel = (evt: RTCDataChannelEvent) => void;
 
 // Reader state type
 export type ReaderState = 'getting_codecs' | 'running' | 'restarting' | 'closed' | 'failed';
@@ -23,6 +24,8 @@ export interface MediaMTXWebRTCReaderConfig {
   onError?: OnError;
   /** Called when there's a track available */
   onTrack?: OnTrack;
+  /** Called when there's a data channel available */
+  onDataChannel?: OnDataChannel;
 }
 
 // Internal data structures
@@ -52,12 +55,12 @@ export interface WebRTCState {
 
 // Component props
 export interface WebRTCVideoProps extends Omit<React.VideoHTMLAttributes<HTMLVideoElement>, 'onError'> {
-  ref?: React.RefObject<HTMLVideoElement>;
   url: string;
   user?: string;
   pass?: string;
   token?: string;
   onError?: OnError;
+  onDataChannel?: OnDataChannel;
   onConnectionStateChange?: (state: ReaderState) => void;
 }
 
@@ -67,5 +70,6 @@ export interface WebRTCAudioProps extends Omit<React.AudioHTMLAttributes<HTMLAud
   pass?: string;
   token?: string;
   onError?: OnError;
+  onDataChannel?: OnDataChannel;
   onConnectionStateChange?: (state: ReaderState) => void;
 }

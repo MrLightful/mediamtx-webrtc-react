@@ -10,8 +10,8 @@ import {
 describe('public exports', () => {
   it('loads the package entrypoint exports', () => {
     expect(MediaMTXWebRTCReader).toBeTypeOf('function');
-    expect(WebRTCAudio).toBeTypeOf('function');
-    expect(WebRTCVideo).toBeTypeOf('function');
+    expect(WebRTCAudio).toBeDefined();
+    expect(WebRTCVideo).toBeDefined();
     expect(useMediaMTXWebRTC).toBeTypeOf('function');
   });
 });

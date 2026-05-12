@@ -15,12 +15,13 @@ import type { WebRTCAudioProps } from '../types/index';
  * />
  * ```
  */
-export const WebRTCAudio: React.FC<WebRTCAudioProps> = ({
+export const WebRTCAudio = React.forwardRef<HTMLAudioElement, WebRTCAudioProps>(({
   url,
   user,
   pass,
   token,
   onError,
+  onDataChannel,
   onConnectionStateChange,
   className,
   autoPlay = true,
@@ -28,21 +29,33 @@ export const WebRTCAudio: React.FC<WebRTCAudioProps> = ({
   muted = false,
   style,
   ...audioProps
-}) => {
+}, ref) => {
+  const internalAudioRef = React.useRef<HTMLAudioElement | null>(null);
   const { 
-    audioRef, 
     connectionState, 
     isConnecting, 
     error,
     stream 
   } = useMediaMTXWebRTC({
+    audioRef: internalAudioRef,
     url,
     user,
     pass,
     token,
     onError,
+    onDataChannel,
     autoplay: autoPlay,
   });
+
+  const setAudioRef = React.useCallback((node: HTMLAudioElement | null) => {
+    internalAudioRef.current = node;
+
+    if (typeof ref === 'function') {
+      ref(node);
+    } else if (ref) {
+      ref.current = node;
+    }
+  }, [ref]);
 
   // Notify parent of connection state changes
   React.useEffect(() => {
@@ -69,7 +82,7 @@ export const WebRTCAudio: React.FC<WebRTCAudioProps> = ({
 
   return (
     <audio
-      ref={audioRef}
+      ref={setAudioRef}
       className={className}
       style={style}
       autoPlay={autoPlay}
@@ -78,4 +91,6 @@ export const WebRTCAudio: React.FC<WebRTCAudioProps> = ({
       {...audioProps}
     />
   );
-};
+});
+
+WebRTCAudio.displayName = 'WebRTCAudio';
