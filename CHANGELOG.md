@@ -1,5 +1,16 @@
 # mediamtx-webrtc-react
 
+## 1.0.0
+
+### Major Changes
+
+- 8ecc0f4: Restore MediaMTX v1.18.1 reader parity and fix React restart/ref handling.
+- e7eb54a: Upgrade the development baseline to TypeScript 6 and React 19.
+
+### Patch Changes
+
+- 4a7d9ad: Add ref to input props to video component
+
 ## 0.1.0
 
 ### Minor Changes
