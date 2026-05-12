@@ -226,6 +226,36 @@ describe('MediaMTXWebRTCReader ICE candidates', () => {
 });
 
 describe('MediaMTXWebRTCReader connection recovery', () => {
+  it('releases the active session without scheduling a restart when closed', () => {
+    vi.useFakeTimers();
+    const fetch = vi.fn().mockRejectedValue(new Error('delete failed'));
+    vi.stubGlobal('fetch', fetch);
+    const close = vi.fn();
+    const reader = makeReader({
+      pc: { close },
+      sessionUrl: 'http://example.test/session/abc',
+      offerData: { iceUfrag: 'ufrag', icePwd: 'pwd', medias: [] },
+      queuedCandidates: [{ candidate: 'candidate:video', sdpMLineIndex: 0 }],
+      retryPause: 2000,
+    });
+
+    reader.close();
+
+    expect(close).toHaveBeenCalled();
+    expect(fetch).toHaveBeenCalledWith('http://example.test/session/abc', {
+      method: 'DELETE',
+    });
+    expect(reader.pc).toBeNull();
+    expect(reader.sessionUrl).toBeNull();
+    expect(reader.offerData).toBeNull();
+    expect(reader.queuedCandidates).toEqual([]);
+    expect(reader.restartTimeout).toBeNull();
+    expect(reader.state).toBe('closed');
+
+    vi.advanceTimersByTime(2000);
+    expect(reader.state).toBe('closed');
+  });
+
   it('cleans up the active session and schedules a restart on running errors', () => {
     vi.useFakeTimers();
     const fetch = vi.fn().mockResolvedValue(mockFetchResponse({ status: 204 }));

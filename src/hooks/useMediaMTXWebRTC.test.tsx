@@ -111,10 +111,85 @@ describe('useMediaMTXWebRTC', () => {
         onDataChannel,
       })
     ));
+    const event = { channel: { label: 'remote' } } as RTCDataChannelEvent;
 
-    expect(readerMock.MockMediaMTXWebRTCReader.instances[0].conf).toMatchObject({
-      onDataChannel,
+    latestReaderConfig().onDataChannel?.(event);
+
+    expect(onDataChannel).toHaveBeenCalledWith(event);
+
+    unmount();
+  });
+
+  it('uses the latest callbacks without recreating the reader', () => {
+    const firstOnError = vi.fn();
+    const secondOnError = vi.fn();
+    const firstOnTrack = vi.fn();
+    const secondOnTrack = vi.fn();
+    const firstOnDataChannel = vi.fn();
+    const secondOnDataChannel = vi.fn();
+    const { rerender, unmount } = renderHook((props: {
+      onError: (err: string) => void;
+      onTrack: (evt: RTCTrackEvent) => void;
+      onDataChannel: (evt: RTCDataChannelEvent) => void;
+    }) => (
+      useMediaMTXWebRTC({
+        url: 'http://example.test/stream/whep',
+        onError: props.onError,
+        onTrack: props.onTrack,
+        onDataChannel: props.onDataChannel,
+      })
+    ), {
+      initialProps: {
+        onError: firstOnError,
+        onTrack: firstOnTrack,
+        onDataChannel: firstOnDataChannel,
+      },
     });
+    const config = latestReaderConfig();
+
+    rerender({
+      onError: secondOnError,
+      onTrack: secondOnTrack,
+      onDataChannel: secondOnDataChannel,
+    });
+
+    expect(readerMock.MockMediaMTXWebRTCReader.instances).toHaveLength(1);
+
+    const trackEvent = { streams: [makeStream({})], track: {} } as unknown as RTCTrackEvent;
+    const dataChannelEvent = { channel: { label: 'remote' } } as RTCDataChannelEvent;
+    act(() => {
+      config.onError('stream not found');
+      config.onTrack(trackEvent);
+      config.onDataChannel?.(dataChannelEvent);
+    });
+
+    expect(firstOnError).not.toHaveBeenCalled();
+    expect(secondOnError).toHaveBeenCalledWith('stream not found');
+    expect(firstOnTrack).not.toHaveBeenCalled();
+    expect(secondOnTrack).toHaveBeenCalledWith(trackEvent);
+    expect(firstOnDataChannel).not.toHaveBeenCalled();
+    expect(secondOnDataChannel).toHaveBeenCalledWith(dataChannelEvent);
+
+    unmount();
+  });
+
+  it('recreates the reader when connection inputs change', () => {
+    const { rerender, unmount } = renderHook((props: { url: string; token?: string }) => (
+      useMediaMTXWebRTC(props)
+    ), {
+      initialProps: { url: 'http://example.test/stream/whep', token: 'first-token' },
+    });
+    const firstReader = readerMock.MockMediaMTXWebRTCReader.instances[0];
+
+    rerender({ url: 'http://example.test/stream/whep', token: 'second-token' });
+
+    expect(firstReader.close).toHaveBeenCalled();
+    expect(readerMock.MockMediaMTXWebRTCReader.instances).toHaveLength(2);
+
+    rerender({ url: 'http://example.test/other/whep', token: 'second-token' });
+
+    expect(readerMock.MockMediaMTXWebRTCReader.instances[1].close).toHaveBeenCalled();
+    expect(readerMock.MockMediaMTXWebRTCReader.instances).toHaveLength(3);
 
     unmount();
   });

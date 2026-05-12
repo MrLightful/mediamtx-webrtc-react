@@ -1,6 +1,6 @@
 import React from 'react';
 import { cleanup, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { WebRTCVideo } from './WebRTCVideo';
 
 const defaultHookResult = () => ({
@@ -21,8 +21,13 @@ vi.mock('../hooks/useMediaMTXWebRTC', () => ({
 }));
 
 describe('WebRTCVideo', () => {
+  beforeEach(() => {
+    vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
+  });
+
   afterEach(() => {
     cleanup();
+    vi.restoreAllMocks();
     hookMock.useMediaMTXWebRTC.mockReset();
   });
 
@@ -99,6 +104,40 @@ describe('WebRTCVideo', () => {
     expect(video.controls).toBe(true);
     expect(video.muted).toBe(true);
     expect(video.hasAttribute('playsinline')).toBe(true);
+  });
+
+  it('attaches an existing stream when the video element mounts after loading', () => {
+    const stream = {} as MediaStream;
+    hookMock.useMediaMTXWebRTC
+      .mockReturnValueOnce({
+        ...defaultHookResult(),
+        isConnecting: true,
+        stream: null,
+      })
+      .mockReturnValueOnce({
+        ...defaultHookResult(),
+        isConnecting: false,
+        stream,
+      });
+
+    const { rerender } = render(
+      <WebRTCVideo
+        url="http://example.test/stream/whep"
+        data-testid="video"
+      />,
+    );
+
+    expect(screen.getByText('Connecting to stream...')).toBeDefined();
+
+    rerender(
+      <WebRTCVideo
+        url="http://example.test/stream/whep"
+        data-testid="video"
+      />,
+    );
+
+    const video = screen.getByTestId('video') as HTMLVideoElement;
+    expect(video.srcObject).toBe(stream);
   });
 
   it('allows default media props to be overridden', () => {

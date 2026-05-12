@@ -1,6 +1,6 @@
 import React from 'react';
 import { cleanup, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { WebRTCAudio } from './WebRTCAudio';
 
 const defaultHookResult = () => ({
@@ -21,8 +21,13 @@ vi.mock('../hooks/useMediaMTXWebRTC', () => ({
 }));
 
 describe('WebRTCAudio', () => {
+  beforeEach(() => {
+    vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
+  });
+
   afterEach(() => {
     cleanup();
+    vi.restoreAllMocks();
     hookMock.useMediaMTXWebRTC.mockReset();
   });
 
@@ -97,6 +102,40 @@ describe('WebRTCAudio', () => {
     expect(audio.autoplay).toBe(true);
     expect(audio.controls).toBe(true);
     expect(audio.muted).toBe(false);
+  });
+
+  it('attaches an existing stream when the audio element mounts after loading', () => {
+    const stream = {} as MediaStream;
+    hookMock.useMediaMTXWebRTC
+      .mockReturnValueOnce({
+        ...defaultHookResult(),
+        isConnecting: true,
+        stream: null,
+      })
+      .mockReturnValueOnce({
+        ...defaultHookResult(),
+        isConnecting: false,
+        stream,
+      });
+
+    const { rerender } = render(
+      <WebRTCAudio
+        url="http://example.test/stream/whep"
+        data-testid="audio"
+      />,
+    );
+
+    expect(screen.getByText('Connecting to audio stream...')).toBeDefined();
+
+    rerender(
+      <WebRTCAudio
+        url="http://example.test/stream/whep"
+        data-testid="audio"
+      />,
+    );
+
+    const audio = screen.getByTestId('audio') as HTMLAudioElement;
+    expect(audio.srcObject).toBe(stream);
   });
 
   it('allows default media props to be overridden', () => {
