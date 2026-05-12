@@ -30,13 +30,14 @@ export const WebRTCAudio = React.forwardRef<HTMLAudioElement, WebRTCAudioProps>(
   style,
   ...audioProps
 }, ref) => {
+  const internalAudioRef = React.useRef<HTMLAudioElement | null>(null);
   const { 
-    audioRef, 
     connectionState, 
     isConnecting, 
     error,
     stream 
   } = useMediaMTXWebRTC({
+    audioRef: internalAudioRef,
     url,
     user,
     pass,
@@ -47,14 +48,14 @@ export const WebRTCAudio = React.forwardRef<HTMLAudioElement, WebRTCAudioProps>(
   });
 
   const setAudioRef = React.useCallback((node: HTMLAudioElement | null) => {
-    (audioRef as React.MutableRefObject<HTMLAudioElement | null>).current = node;
+    internalAudioRef.current = node;
 
     if (typeof ref === 'function') {
       ref(node);
     } else if (ref) {
       ref.current = node;
     }
-  }, [audioRef, ref]);
+  }, [ref]);
 
   // Notify parent of connection state changes
   React.useEffect(() => {

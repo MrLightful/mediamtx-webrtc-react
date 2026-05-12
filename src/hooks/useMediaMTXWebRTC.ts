@@ -7,6 +7,8 @@ import type {
   WebRTCState
 } from '../types/index';
 
+type IntervalId = ReturnType<typeof setInterval>;
+
 /**
  * React hook for MediaMTX WebRTC streaming
  */
@@ -19,9 +21,17 @@ export function useMediaMTXWebRTC(config: ReactWebRTCConfig) {
   const [restartToken, setRestartToken] = useState<number>(0);
   
   const readerRef = useRef<MediaMTXWebRTCReader | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const isInitializedRef = useRef<boolean>(false);
+  const stateCheckIntervalRef = useRef<IntervalId | null>(null);
+
+  const clearStateCheckInterval = useCallback(() => {
+    if (stateCheckIntervalRef.current !== null) {
+      clearInterval(stateCheckIntervalRef.current);
+      stateCheckIntervalRef.current = null;
+    }
+  }, []);
 
   // Handle track events with automatic video/audio element assignment
   const handleTrack = useCallback((evt: RTCTrackEvent) => {
@@ -98,24 +108,27 @@ export function useMediaMTXWebRTC(config: ReactWebRTCConfig) {
       isInitializedRef.current = true;
 
       // Monitor connection state changes
-      const stateCheckInterval = setInterval(() => {
+      clearStateCheckInterval();
+      stateCheckIntervalRef.current = setInterval(() => {
         if (reader) {
           setConnectionState(reader.connectionState);
         }
       }, 100);
 
       return () => {
-        clearInterval(stateCheckInterval);
-        reader.close();
-        readerRef.current = null;
-        isInitializedRef.current = false;
+        clearStateCheckInterval();
+        if (readerRef.current === reader) {
+          reader.close();
+          readerRef.current = null;
+          isInitializedRef.current = false;
+        }
       };
     } catch (error) {
       handleError(`Failed to initialize WebRTC reader: ${error}`);
       isInitializedRef.current = false;
       return () => {}; // Return no-op cleanup function
     }
-  }, [config.url, config.user, config.pass, config.token, config.onDataChannel, handleError, handleTrack, restartToken]);
+  }, [config.url, config.user, config.pass, config.token, config.onDataChannel, clearStateCheckInterval, handleError, handleTrack, restartToken]);
 
   // Clean up on unmount
   useEffect(() => {
@@ -123,8 +136,9 @@ export function useMediaMTXWebRTC(config: ReactWebRTCConfig) {
       if (readerRef.current) {
         readerRef.current.close();
       }
+      clearStateCheckInterval();
     };
-  }, []);
+  }, [clearStateCheckInterval]);
 
   // Compute derived state
   const isConnecting = connectionState === 'getting_codecs' || connectionState === 'restarting';
@@ -153,6 +167,7 @@ export function useMediaMTXWebRTC(config: ReactWebRTCConfig) {
     
     // Manual control methods
     close: () => {
+      clearStateCheckInterval();
       readerRef.current?.close();
       readerRef.current = null;
       isInitializedRef.current = false;
@@ -161,6 +176,7 @@ export function useMediaMTXWebRTC(config: ReactWebRTCConfig) {
       setStream(null);
     },
     restart: () => {
+      clearStateCheckInterval();
       if (readerRef.current) {
         readerRef.current.close();
         readerRef.current = null;

@@ -61,6 +61,29 @@ describe('useMediaMTXWebRTC', () => {
     unmount();
   });
 
+  it('stops polling connection state after close is called', () => {
+    vi.useFakeTimers();
+
+    const { result, unmount } = renderHook(() => useMediaMTXWebRTC({ url: 'http://example.test/stream/whep' }));
+    const reader = readerMock.MockMediaMTXWebRTCReader.instances[0];
+
+    act(() => {
+      result.current.close();
+    });
+
+    expect(reader.close).toHaveBeenCalled();
+    expect(result.current.connectionState).toBe('closed');
+
+    act(() => {
+      reader.connectionState = 'running';
+      vi.advanceTimersByTime(200);
+    });
+
+    expect(result.current.connectionState).toBe('closed');
+
+    unmount();
+  });
+
   it('passes onDataChannel through to the reader config', () => {
     const onDataChannel = vi.fn();
     const { unmount } = renderHook(() => (

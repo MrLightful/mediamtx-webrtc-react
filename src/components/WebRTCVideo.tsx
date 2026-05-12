@@ -31,14 +31,15 @@ export const WebRTCVideo = React.forwardRef<HTMLVideoElement, WebRTCVideoProps>(
   style,
   ...videoProps
 }, ref) => {
+  const internalVideoRef = React.useRef<HTMLVideoElement | null>(null);
   const { 
-    videoRef, 
     connectionState, 
     isConnecting, 
     isConnected, 
     error,
     stream 
   } = useMediaMTXWebRTC({
+    videoRef: internalVideoRef,
     url,
     user,
     pass,
@@ -49,14 +50,14 @@ export const WebRTCVideo = React.forwardRef<HTMLVideoElement, WebRTCVideoProps>(
   });
 
   const setVideoRef = React.useCallback((node: HTMLVideoElement | null) => {
-    (videoRef as React.MutableRefObject<HTMLVideoElement | null>).current = node;
+    internalVideoRef.current = node;
 
     if (typeof ref === 'function') {
       ref(node);
     } else if (ref) {
       ref.current = node;
     }
-  }, [ref, videoRef]);
+  }, [ref]);
 
   // Notify parent of connection state changes
   React.useEffect(() => {
