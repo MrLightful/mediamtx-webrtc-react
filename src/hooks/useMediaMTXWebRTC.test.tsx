@@ -20,6 +20,25 @@ vi.mock('../lib/MediaMTXWebRTCReader', () => ({
   MediaMTXWebRTCReader: readerMock.MockMediaMTXWebRTCReader,
 }));
 
+const latestReaderConfig = () => (
+  readerMock.MockMediaMTXWebRTCReader.instances.at(-1)!.conf as {
+    onError: (err: string) => void;
+    onTrack: (evt: RTCTrackEvent) => void;
+    onDataChannel?: (evt: RTCDataChannelEvent) => void;
+  }
+);
+
+const makeStream = ({
+  videoTracks = [],
+  audioTracks = [],
+}: {
+  videoTracks?: unknown[];
+  audioTracks?: unknown[];
+}) => ({
+  getVideoTracks: vi.fn(() => videoTracks),
+  getAudioTracks: vi.fn(() => audioTracks),
+});
+
 describe('useMediaMTXWebRTC', () => {
   afterEach(() => {
     vi.useRealTimers();
@@ -96,6 +115,154 @@ describe('useMediaMTXWebRTC', () => {
     expect(readerMock.MockMediaMTXWebRTCReader.instances[0].conf).toMatchObject({
       onDataChannel,
     });
+
+    unmount();
+  });
+
+  it('updates state, clears retry errors, and forwards track events', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-12T10:30:00.000Z'));
+    const video = document.createElement('video');
+    const play = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(video, 'play', { value: play, configurable: true });
+    Object.defineProperty(video, 'srcObject', { value: null, writable: true, configurable: true });
+    const videoRef = { current: video };
+    const stream = makeStream({ videoTracks: [{}] });
+    const onTrack = vi.fn();
+    const { result, unmount } = renderHook(() => (
+      useMediaMTXWebRTC({
+        url: 'http://example.test/stream/whep',
+        videoRef,
+        onTrack,
+      })
+    ));
+    const config = latestReaderConfig();
+
+    act(() => {
+      config.onError('network issue, retrying in some seconds');
+    });
+    expect(result.current.error).toBe('network issue, retrying in some seconds');
+    expect(result.current.retryCount).toBe(1);
+
+    const event = { streams: [stream], track: {} } as unknown as RTCTrackEvent;
+    act(() => {
+      config.onTrack(event);
+    });
+
+    expect(result.current.stream).toBe(stream);
+    expect(result.current.error).toBeNull();
+    expect(result.current.retryCount).toBe(0);
+    expect(result.current.lastConnectedAt).toEqual(new Date('2026-05-12T10:30:00.000Z'));
+    expect(video.srcObject).toBe(stream);
+    expect(play).toHaveBeenCalled();
+    expect(onTrack).toHaveBeenCalledWith(event);
+
+    unmount();
+  });
+
+  it('assigns audio refs only when audio tracks are present', () => {
+    const video = document.createElement('video');
+    const audio = document.createElement('audio');
+    const videoPlay = vi.fn().mockResolvedValue(undefined);
+    const audioPlay = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(video, 'play', { value: videoPlay, configurable: true });
+    Object.defineProperty(audio, 'play', { value: audioPlay, configurable: true });
+    Object.defineProperty(video, 'srcObject', { value: null, writable: true, configurable: true });
+    Object.defineProperty(audio, 'srcObject', { value: null, writable: true, configurable: true });
+    const videoRef = { current: video };
+    const audioRef = { current: audio };
+    const videoOnlyStream = makeStream({ videoTracks: [{}], audioTracks: [] });
+    const audioStream = makeStream({ videoTracks: [], audioTracks: [{}] });
+    const { unmount } = renderHook(() => (
+      useMediaMTXWebRTC({
+        url: 'http://example.test/stream/whep',
+        videoRef,
+        audioRef,
+      })
+    ));
+    const config = latestReaderConfig();
+
+    act(() => {
+      config.onTrack({ streams: [videoOnlyStream], track: {} } as unknown as RTCTrackEvent);
+    });
+    expect(video.srcObject).toBe(videoOnlyStream);
+    expect(audio.srcObject).toBeNull();
+
+    act(() => {
+      config.onTrack({ streams: [audioStream], track: {} } as unknown as RTCTrackEvent);
+    });
+    expect(audio.srcObject).toBe(audioStream);
+
+    unmount();
+  });
+
+  it('skips media playback when autoplay is disabled', () => {
+    const video = document.createElement('video');
+    const play = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(video, 'play', { value: play, configurable: true });
+    Object.defineProperty(video, 'srcObject', { value: null, writable: true, configurable: true });
+    const videoRef = { current: video };
+    const stream = makeStream({ videoTracks: [{}] });
+    const { unmount } = renderHook(() => (
+      useMediaMTXWebRTC({
+        url: 'http://example.test/stream/whep',
+        videoRef,
+        autoplay: false,
+      })
+    ));
+
+    act(() => {
+      latestReaderConfig().onTrack({ streams: [stream], track: {} } as unknown as RTCTrackEvent);
+    });
+
+    expect(video.srcObject).toBe(stream);
+    expect(play).not.toHaveBeenCalled();
+
+    unmount();
+  });
+
+  it('swallows autoplay failures after assigning media', () => {
+    const video = document.createElement('video');
+    const play = vi.fn().mockRejectedValue(new Error('blocked'));
+    Object.defineProperty(video, 'play', { value: play, configurable: true });
+    Object.defineProperty(video, 'srcObject', { value: null, writable: true, configurable: true });
+    const videoRef = { current: video };
+    const stream = makeStream({ videoTracks: [{}] });
+    const { unmount } = renderHook(() => (
+      useMediaMTXWebRTC({
+        url: 'http://example.test/stream/whep',
+        videoRef,
+      })
+    ));
+
+    expect(() => {
+      act(() => {
+        latestReaderConfig().onTrack({ streams: [stream], track: {} } as unknown as RTCTrackEvent);
+      });
+    }).not.toThrow();
+
+    expect(video.srcObject).toBe(stream);
+    expect(play).toHaveBeenCalled();
+
+    unmount();
+  });
+
+  it('forwards non-retry errors without incrementing retry count', () => {
+    const onError = vi.fn();
+    const { result, unmount } = renderHook(() => (
+      useMediaMTXWebRTC({
+        url: 'http://example.test/stream/whep',
+        onError,
+      })
+    ));
+
+    act(() => {
+      latestReaderConfig().onError('stream not found');
+    });
+
+    expect(result.current.error).toBe('stream not found');
+    expect(result.current.retryCount).toBe(0);
+    expect(onError).toHaveBeenCalledWith('stream not found');
 
     unmount();
   });
