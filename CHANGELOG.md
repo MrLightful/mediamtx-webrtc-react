@@ -1,5 +1,11 @@
 # mediamtx-webrtc-react
 
+## 1.0.1
+
+### Patch Changes
+
+- 5a4907b: Remove pnpm lock via preinstall script
+
 ## 1.0.0
 
 ### Major Changes
