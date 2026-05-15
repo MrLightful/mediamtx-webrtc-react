@@ -45,10 +45,9 @@
     "dev": "tsup --watch",
     "test": "vitest run --environment jsdom",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist",
-    "preinstall": "npx only-allow pnpm"
+    "clean": "rm -rf dist"
   },
-  "packageManager": "pnpm@10.18.1",
+  "packageManager": "pnpm@11.1.2",
   "peerDependencies": {
     "@types/react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
     "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
